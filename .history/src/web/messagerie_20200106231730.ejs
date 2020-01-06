@@ -1,0 +1,85 @@
+<style>
+    #message-container div {
+      background-color: #CCC;
+      padding: 5px;
+    }
+    #message-container div:nth-child(2n) {
+      background-color: #FFF;
+    }
+    #message-input {
+      flex-grow: 1;
+    }
+
+    .tchat-card {
+      height: 100%;
+    }
+  </style>
+
+<div class="card tchat-card">
+  <div class="card-body">
+      <div id="message-container"></div>
+  </div>
+  <div class="card-footer">
+    <form id="send-container">
+        <div class="input-group">
+            <input type="text" class="form-control" id="message-input">
+           <div class="input-group-append">
+              <button type="submit" id="send-button" class="btn btn-outline-secondary" type="button">Send</button>
+          </div>
+        </div>
+    </form>
+
+  </div>
+</div>
+
+
+  
+
+<script>
+
+const socket = io('http://localhost:9999');
+const messageForm = document.getElementById('send-container');
+const messageInput = document.getElementById('message-input');
+const messageContainer = document.getElementById('message-container');
+
+appendMessage({message : 'you joined'});
+socket.emit('new-user', '<%= idRoom %>');
+
+
+socket.on('chat-message', data => {
+    appendMessage(data);
+})
+
+socket.on('user-connected', avatar => {
+    appendMessage( avatar + 'connected');
+})
+
+socket.on('history-message', data => {
+
+  console.log('history',data);
+  data.messages.forEach(message => {
+    appendMessage({message:message });
+  });
+    
+})
+
+
+
+messageForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const message = messageInput.value;
+    console.log('message : ',message);
+    socket.emit('send-chat-message', message, '<%= idRoom %>');
+    appendMessage({message: message});
+    messageInput.value='';
+})
+
+function appendMessage(data) {
+    const messageElement = document.createElement('div');
+    messageElement.innerText = data.message;
+    messageContainer.append(messageElement);
+
+
+}
+</script>

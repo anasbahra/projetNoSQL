@@ -1,0 +1,159 @@
+<style>
+    .room-form {
+        height: 100%
+    }
+</style>
+
+<div class="d-flex mt-10 flex-row bd-highlight">
+        <div class="card room-form mr-5">
+                <h5 class="card-header">ROOMS</h5>
+                <div class="card-body">
+                    
+                        <form method="POST" action="/api/user/room">
+                            <div class="form-group">
+                                    <div class="d-flex flex-row bd-highlight ml-2">
+                                            <input type="name" placeholder="room name" class="form-control" id="room" name="name" required>
+                                            <button type="submit" class="btn btn-warning ml-2"> create </button>
+                                    </div>
+                               
+                            </div>
+
+                        </form>
+                    <div id="room-container">
+                            <ul class="list-group">
+                                
+                                 <% rooms.forEach(function(room){ %>
+                                     <li class="list-group-item d-flex justify-content-between align-items-center">
+                                         <a href ="#" onClick="selectRoom('<%=room._id%>')"> <%= room.name %>  </a>
+                                         <span class="badge badge-primary badge-pill"><%= room.broadcastingUserList.length %> </span>
+                                     </li>
+                                     
+                                 <% }) %>
+                            </ul>
+                         
+                       </div>
+                </div>
+
+        </div>
+
+  <div id="register-user-container mr-5" class="card">
+      <div class="card-body">
+            <div class="form-group">
+                    <input type="name" placeholder="Search.." class="form-control" id="search-user" onChange= "searchUser()" name ="search-user">
+            </div>
+            <div id="list-user" class="mb-3"></div>
+            <div class="card-footer">
+                <div id="room-user"></div>
+            </div>
+             
+      </div>
+  
+    </div>
+
+    <div class="chat-container">
+
+
+    </div>
+
+
+</div>
+<script>
+
+$(document).ready(function() {
+  $('#register-user-container').hide();
+});
+
+var selectedRoom = null;
+
+
+function selectRoom(idRoom){
+    console.log('idRoom',idRoom);
+    selectedRoom = idRoom;
+    const registerUserContainer = document.getElementById('register-user-container');
+
+   
+    $.ajax('/api/user/room/'+idRoom,   // request url
+    {
+
+        success: function (room, status, xhr) {// success callback function
+            document.getElementById('room-user').innerHTML ='';
+            room.broadcastingUserList.forEach(user => {
+                const userElementInput = document.createElement('input');
+                userElementInput.setAttribute('type','name');
+                userElementInput.setAttribute('disabled',true);
+                userElementInput.setAttribute('class','form-control mb-2');
+                userElementInput.value = user.email;
+                document.getElementById('room-user').append(userElementInput);
+         
+            });
+            $(registerUserContainer).show();
+        }
+    });
+    $.ajax('/api/user/chat',   // request url
+    {
+
+        success: function (resHtml, status, xhr) {// success callback function
+            $('.chat-container').append(resHtml);
+        }
+    }
+
+    
+
+
+}
+function searchUser() {
+
+
+    const search_input = document.getElementById('search-user');
+
+    const userElement = document.createElement('div');
+    const userElementInput = document.createElement('input');
+    userElementInput.setAttribute('class','form-control mr-3')
+
+    const addUserToRoomBtn = document.createElement('button');
+    addUserToRoomBtn.setAttribute('class','addUser btn btn-info');
+    addUserToRoomBtn.innerHTML = "add";
+
+    userElementInput.setAttribute('type','name');
+    userElementInput.setAttribute('disabled',true);
+
+    userElement.setAttribute('class','fetchedUser d-flex flex-row bd-highlight ml-2');
+    userElement.appendChild(userElementInput);
+    userElement.appendChild(addUserToRoomBtn);
+
+    $.ajax('/api/user/search?email='+search_input.value,   // request url
+    {
+
+        success: function (users, status, xhr) {// success callback function
+            console.log(users);
+            users.forEach(user => {
+              document.getElementById('list-user').innerHTML ='';
+              userElement.childNodes[0].value = user.email;
+              console.log(userElement);
+              document.getElementById('list-user').append(userElement);
+            });
+    }
+
+});
+
+$(document).on('click', '.addUser', function(evt){ 
+    let selectedMailUser = evt.target.parentNode.childNodes[0].value;
+
+    $.ajax({
+        url:"/api/user/room/register ",
+        method:"POST", 
+        data:{
+          roomId: selectedRoom,
+          userMail: selectedMailUser 
+        },
+        success:function(response) {
+         document.location.reload(true);
+       },
+       error:function(){
+        alert("error");
+       }
+
+      });
+});
+}
+</script>

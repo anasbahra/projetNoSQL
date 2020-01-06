@@ -1,0 +1,78 @@
+<style>
+    #message-container div {
+      background-color: #CCC;
+      padding: 5px;
+    }
+    #message-container div:nth-child(2n) {
+      background-color: #FFF;
+    }
+    #send-container {
+      position: fixed;
+      padding-bottom: 30px;
+      bottom: 0;
+      background-color: white;
+      display: flex;
+    }
+    #message-input {
+      flex-grow: 1;
+    }
+  </style>
+
+<div class="card">
+  <div class="card-body">
+      <div id="message-container"></div>
+      <form id="send-container">
+        <div class="input-group">
+             <input type="text" class="form-control" id="message-input">
+            <div class="input-group-append">
+               <button type="submit" id="send-button" class="btn btn-outline-secondary" type="button">Send</button>
+          </div>
+    </div>
+  </div>
+
+</div>
+
+  
+
+<script>
+
+const socket = io('http://localhost:9999');
+const messageForm = document.getElementById('send-container');
+const messageInput = document.getElementById('message-input');
+const messageContainer = document.getElementById('message-container');
+
+
+const avatar =prompt('choose an avatar');
+appendMessage({message : 'you joined'});
+socket.emit('new-user', avatar);
+
+
+socket.on('chat-message', data => {
+  console.log('on chat message :',data.message);
+    appendMessage(data);
+})
+
+socket.on('user-connected', avatar => {
+    appendMessage( avatar + 'connected');
+})
+
+
+
+messageForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const message = messageInput.value;
+    console.log('message : ',message);
+    socket.emit('send-chat-message', message);
+    appendMessage({message: message});
+    messageInput.value='';
+})
+
+function appendMessage(data) {
+    const messageElement = document.createElement('div');
+    messageElement.innerText = data.message;
+    messageContainer.append(messageElement);
+
+
+}
+</script>

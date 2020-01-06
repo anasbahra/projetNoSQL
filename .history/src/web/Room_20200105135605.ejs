@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title> Room </title>
+  <script  src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+  </style>
+</head>
+<body>
+  <div id="room-form">
+        <form method="POST" action="/api/user/room">
+            <div>
+                <label for="name">Room</label>
+                <input type="name" id="room" name="name" required>
+                <button type="submit"> create </button>
+            </div>
+        </form>
+  </div>
+  <div id="room-container">
+       <ul>
+           
+            <% rooms.forEach(function(room){ %>
+                <li>
+                        <a href ="#" onClick="selectRoom(room._id)"> <%= room.name %>  
+                </li>
+                
+            <% }) %>
+       </ul>
+    
+  </div>
+
+  <div id="register-user-container" style="{display: none}">
+      <input type="name" id="search-user" onChange= "searchUser()" name ="search-user">
+      <div id="list-user">
+
+      </div>
+      <div id="room-user">
+
+      </div>
+  </div>
+
+</body>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+<script>
+
+var selectedRoom = null;
+
+
+function selectRoom(idRoom){
+    selectedRoom = idRoom;
+    const registerUserContainer = document.getElementById('register-user-container');
+    registerUserContainer.style =  {display : block};
+
+
+}
+function searchUser() {
+
+
+    const search_input = document.getElementById('search-user');
+
+    const userElement = document.createElement('div');
+    const userElementInput = document.createElement('input');
+
+    const addUserToRoomBtn = document.createElement('button');
+    addUserToRoomBtn.setAttribute('class','addUser');
+    addUserToRoomBtn.innerHTML = "add";
+
+    userElementInput.setAttribute('type','name');
+    userElementInput.setAttribute('disabled',true);
+
+    userElement.setAttribute('class','fetchedUser');
+    userElement.appendChild(userElementInput);
+    userElement.appendChild(addUserToRoomBtn);
+
+    $.ajax('/api/user/search?email='+search_input.value,   // request url
+    {
+
+        success: function (users, status, xhr) {// success callback function
+            console.log(users);
+            users.forEach(user => {
+              document.getElementById('list-user').innerHTML ='';
+              userElement.childNodes[0].value = user.email;
+              console.log(userElement);
+              document.getElementById('list-user').append(userElement);
+            });
+    }
+
+});
+
+$('.addUser').click(( evt) => {
+    console.log(evt);
+});
+}
+
+
+</script>
+</html>
